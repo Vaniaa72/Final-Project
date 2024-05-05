@@ -1,0 +1,159 @@
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+// Enum for Elevator Types
+enum ElevatorType {
+    STANDARD,
+    EXPRESS
+}
+
+// Person superclass
+class Person {
+    private int startingFloor;
+    private int destinationFloor;
+
+    public Person(int startingFloor, int destinationFloor) {
+        this.startingFloor = startingFloor;
+        this.destinationFloor = destinationFloor;
+    }
+
+    public int getStartingFloor() {
+        return startingFloor;
+    }
+
+    public int getDestinationFloor() {
+        return destinationFloor;
+    }
+}
+
+// Passenger class
+class Passenger extends Person {
+    public Passenger(int startingFloor, int destinationFloor) {
+        super(startingFloor, destinationFloor);
+    }
+}
+
+// Staff class
+class Staff extends Person {
+    public Staff(int startingFloor, int destinationFloor) {
+        super(startingFloor, destinationFloor);
+    }
+}
+
+// Elevator class
+class Elevator {
+    int currentFloor;
+    List<Person> passengers;
+    private ElevatorType type;
+
+    public Elevator(ElevatorType type) {
+        this.type = type;
+        this.passengers = new ArrayList<>();
+        this.currentFloor = 0; // Assuming ground floor is 0
+    }
+
+    public boolean isFull() {
+        return passengers.size() > 10;
+    }
+
+    public ElevatorType getType() {
+        return type;
+    }
+
+    public void move(int destinationFloor) {
+        // Move the elevator to the destination floor
+        currentFloor = destinationFloor;
+        System.out.println("Elevator moved to floor " + currentFloor);
+    }
+
+    public void pickup(Person person) {
+        // Add passenger to elevator
+        passengers.add(person);
+        System.out.println("Person picked up for floor " + person.getDestinationFloor());
+    }
+
+    public void dropOff(Person person) {
+        // Remove passenger from elevator
+        passengers.remove(person);
+        System.out.println("Person dropped off at floor " + person.getDestinationFloor());
+    }
+}
+
+// ElevatorSimulator class
+public class ElevatorSimulator {
+    private List<Elevator> elevators;
+    private List<Person> people;
+    private int numFloors;
+    private Random random;
+
+    public ElevatorSimulator(int numFloors, int numElevators) {
+        this.numFloors = numFloors;
+        this.random = new Random();
+        this.elevators = new ArrayList<>();
+        this.people = new ArrayList<>();
+
+        // Initialize elevators
+        for (int i = 0; i < numElevators; i++) {
+            // Decide elevator type randomly
+            ElevatorType type = (random.nextInt(100) < 70) ? ElevatorType.STANDARD : ElevatorType.EXPRESS;
+            elevators.add(new Elevator(type));
+        }
+    }
+
+    // Method to add people to simulation
+    public void addPerson(int startingFloor, int destinationFloor, boolean isStaff) {
+        if (isStaff) {
+            people.add(new Staff(startingFloor, destinationFloor));
+        } else {
+            people.add(new Passenger(startingFloor, destinationFloor));
+        }
+    }
+
+    // Method to simulate elevator movements
+    public void simulate(int numIterations) {
+        for (int i = 0; i < numIterations; i++) {
+            for (Elevator elevator : elevators) {
+                // Simulate elevator movement based on its type and passenger pickups/drop-offs
+                // This is where the implement the core simulation logic
+                // Move the elevator to a random floor in this example
+                int destinationFloor = random.nextInt(numFloors);
+                elevator.move(destinationFloor);
+
+                // Simulate picking up people
+                for (Person person : people) {
+                    if (elevator.getType() == ElevatorType.EXPRESS || person instanceof Staff) {
+                        if (person.getStartingFloor() == elevator.currentFloor) {
+                            elevator.pickup(person);
+                        }
+                    } else {
+                        if (person.getStartingFloor() == elevator.currentFloor && !elevator.isFull()) {
+                            elevator.pickup(person);
+                        }
+                    }
+                }
+
+                // Simulate dropping off people
+                List<Person> peopleToDropOff = new ArrayList<>();
+                for (Person person : elevator.passengers) {
+                    if (person.getDestinationFloor() == elevator.currentFloor) {
+                        peopleToDropOff.add(person);
+                    }
+                }
+                for (Person person : peopleToDropOff) {
+                    elevator.dropOff(person);
+                }
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        // Example usage
+        ElevatorSimulator simulator = new ElevatorSimulator(10, 2); // 10 floors, 2 elevators
+        simulator.addPerson(1, 5, false); // Adding a passenger
+        simulator.addPerson(2, 7, true); // Adding a staff member
+        // Add more people...
+
+        simulator.simulate(60); // Simulate for 60 iterations
+    }
+}
